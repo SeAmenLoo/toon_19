@@ -219,6 +219,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sDepthBuffer: {fileID: 4800000, guid: 42b9fa8ea52b0944c8c07c92f274188b, type: 3}
   sColorBuffer: {fileID: 4800000, guid: 7d01ff510e1337445b596ae61e86e9c7, type: 3}
+  stest: {fileID: 4800000, guid: 2903e24a2f7c0854b8dddb1ac5ed80bb, type: 3}
   frames: 10
   acc: 0.75
 --- !u!114 &620980487

@@ -20,6 +20,7 @@ public class MotionBlurCamera : MonoBehaviour
     RenderTexture scbuffer;
     public float frames;
     public float acc;
+    float timer = 0;
      void OnEnable() {
         
         cm=GetComponent<Camera>();
@@ -38,19 +39,20 @@ public class MotionBlurCamera : MonoBehaviour
         //{
         //    DestroyImmediate(cbuffer);
         //    cbuffer = new RenderTexture(src.width, src.height, 0);
-        //    cbuffer.hideFlags = HideFlags.HideInHierarchy;
+        //    cbuffer.hideFlags = HideFlags.HideAndDontSave;
         //    Graphics.Blit(src, cbuffer);
         //    Debug.Log("first frame");
         //    return;
         //}
 
+        //mtest.SetFloat("_BlurAmount", acc);
         //mtest.SetTexture("_OldFrame", cbuffer);
         //mtest.SetTexture("_CurFrame", src);
 
-        //Graphics.SetRenderTarget(cbuffer);
+        //cbuffer.MarkRestoreExpected();
         //Graphics.Blit(src, cbuffer, mtest);
         //Graphics.Blit(cbuffer, dest);
-        
+
         //return;
         if (cbuffer==null){
             DestroyImmediate(cbuffer);
@@ -80,23 +82,32 @@ public class MotionBlurCamera : MonoBehaviour
 
         if(mDepthBuffer!=null&&mColorBuffer!=null){
 
-            
-
-            Graphics.Blit(cbuffer, scbuffer);
-            mColorBuffer.SetTexture("_DepthBuffer", dbuffer);
-            mColorBuffer.SetTexture("_CurFrame", src);
-           
-            mColorBuffer.SetTexture("_OldFrame", scbuffer);
-            mColorBuffer.SetFloat("_AccunOrig", acc);
-            Graphics.Blit(src, cbuffer, mColorBuffer);
 
             Graphics.Blit(dbuffer, sdbuffer);
             mDepthBuffer.SetTexture("_DepthBuffer", sdbuffer);
             mDepthBuffer.SetFloat("_Num", frames);
             Graphics.Blit(src, dbuffer, mDepthBuffer);
 
+            Graphics.Blit(cbuffer, scbuffer);
+            mColorBuffer.SetTexture("_DepthBuffer", dbuffer);
+            mColorBuffer.SetTexture("_CurFrame", src);
+           
+            mColorBuffer.SetTexture("_OldFrame", scbuffer);
+            mColorBuffer.SetFloat("_AccumOrig", acc);
+            Graphics.Blit(src, cbuffer, mColorBuffer);
 
-            Graphics.Blit(cbuffer, dest);
+
+
+            if (timer < 1)
+            {
+                timer += (1 / frames);
+            }
+            else
+            {
+                Graphics.Blit(cbuffer, dest);
+                timer = 0;
+            }
+            
 
 
 

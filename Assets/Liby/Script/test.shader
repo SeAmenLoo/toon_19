@@ -8,7 +8,7 @@
     {
         // No culling or depth
 		Cull Off ZWrite Off ZTest Always
-
+		Blend zero one
         Pass
         {
             CGPROGRAM
@@ -30,6 +30,7 @@
             };
 			sampler2D _OldFrame;
 			sampler2D _CurFrame;
+			float _BlurAmount;
             v2f vert (appdata v)
             {
                 v2f o;
@@ -45,10 +46,12 @@
                 fixed4 col = tex2D(_CurFrame, i.uv);
                 // just invert the colors
 				fixed4 oldcol = tex2D(_OldFrame, i.uv);
-				fixed s = oldcol.r + 0.1;
+				//col.a = _BlurAmount;
+				//oldcol.a = 1- _BlurAmount;
+				fixed4 s = oldcol+col;
 				//oldcol.a = 0.9;
 				//oldcol.r += 0.7;
-				return fixed4(s,0,1,1) ;
+				return oldcol;
             }
             ENDCG
         }
