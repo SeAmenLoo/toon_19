@@ -6,6 +6,12 @@ using UnityEngine;
 [RequireComponent(typeof(Camera))]
 public class MotionBlurCamera : MonoBehaviour
 {
+    public enum CameraSet{
+        test,
+        normel,
+        deleteFrame,
+    }
+    public CameraSet cameraSet;
     Camera cm;
 
     public Shader sDepthBuffer;
@@ -32,28 +38,35 @@ public class MotionBlurCamera : MonoBehaviour
         Debug.Log(SystemInfo.supportedRenderTargetCount);
 
     }
-
+    [ImageEffectOpaque]
     void OnRenderImage(RenderTexture src, RenderTexture dest) {
+        if (cameraSet==CameraSet.test) {
+            if (cbuffer == null)
+            {
+                DestroyImmediate(cbuffer);
+                cbuffer = new RenderTexture(src.width, src.height, 0);
+                cbuffer.hideFlags = HideFlags.HideAndDontSave;
+                Graphics.Blit(src, cbuffer);
+                Debug.Log("first frame");
+                DestroyImmediate(scbuffer);
+                scbuffer = new RenderTexture(src.width, src.height, 0);
+                scbuffer.hideFlags = HideFlags.HideAndDontSave;
+                Graphics.Blit(src, scbuffer);
+                return;
+            }
 
-        //if (cbuffer == null)
-        //{
-        //    DestroyImmediate(cbuffer);
-        //    cbuffer = new RenderTexture(src.width, src.height, 0);
-        //    cbuffer.hideFlags = HideFlags.HideAndDontSave;
-        //    Graphics.Blit(src, cbuffer);
-        //    Debug.Log("first frame");
-        //    return;
-        //}
+            // Graphics.Blit(cbuffer, scbuffer);
+            mtest.SetFloat("_BlurAmount", acc);
+            mtest.SetTexture("_OldFrame", cbuffer);
+            mtest.SetTexture("_CurFrame", src);
 
-        //mtest.SetFloat("_BlurAmount", acc);
-        //mtest.SetTexture("_OldFrame", cbuffer);
-        //mtest.SetTexture("_CurFrame", src);
 
-        //cbuffer.MarkRestoreExpected();
-        //Graphics.Blit(src, cbuffer, mtest);
-        //Graphics.Blit(cbuffer, dest);
+            Graphics.Blit(src, cbuffer, mtest);
+            Graphics.Blit(cbuffer, dest);
 
-        //return;
+            return;
+        }
+        
         if (cbuffer==null){
             DestroyImmediate(cbuffer);
             cbuffer=new RenderTexture(src.width,src.height,0);
@@ -97,16 +110,23 @@ public class MotionBlurCamera : MonoBehaviour
             Graphics.Blit(src, cbuffer, mColorBuffer);
 
 
-
-            if (timer < 1)
+            if (cameraSet == CameraSet.deleteFrame)
             {
-                timer += (1 / frames);
+                if (timer < 1)
+                {
+                    timer += (1 / frames);
+                }
+                else
+                {
+                    Graphics.Blit(cbuffer, dest);
+                    timer = 0;
+                }
             }
-            else
+            else if(cameraSet == CameraSet.normel)
             {
                 Graphics.Blit(cbuffer, dest);
-                timer = 0;
             }
+
             
 
 

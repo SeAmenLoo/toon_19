@@ -8,7 +8,7 @@
     {
         // No culling or depth
 		Cull Off ZWrite Off ZTest Always
-		Blend zero one
+
         Pass
         {
             CGPROGRAM
@@ -46,12 +46,11 @@
                 fixed4 col = tex2D(_CurFrame, i.uv);
                 // just invert the colors
 				fixed4 oldcol = tex2D(_OldFrame, i.uv);
-				//col.a = _BlurAmount;
-				//oldcol.a = 1- _BlurAmount;
-				fixed4 s = oldcol+col;
+				
+				fixed4 s = oldcol* _BlurAmount +col*(1 - _BlurAmount);
 				//oldcol.a = 0.9;
 				//oldcol.r += 0.7;
-				return oldcol;
+				return s;
             }
             ENDCG
         }

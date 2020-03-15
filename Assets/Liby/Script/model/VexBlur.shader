@@ -1,4 +1,4 @@
-﻿Shader "Unlit/testmodel"
+﻿Shader "Unlit/VexBlur"
 {
     Properties
     {
@@ -23,6 +23,7 @@
             {
                 float4 vertex : POSITION;
                 float2 uv : TEXCOORD0;
+                float4 color:color;
             };
 
             struct v2f
@@ -38,7 +39,7 @@
             v2f vert (appdata v)
             {
                 v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
+                o.vertex = UnityObjectToClipPos(v.vertex+v.color);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 UNITY_TRANSFER_FOG(o,o.vertex);
                 return o;
