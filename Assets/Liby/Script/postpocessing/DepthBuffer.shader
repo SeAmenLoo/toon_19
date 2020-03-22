@@ -50,11 +50,23 @@
 				float subD = tex2D(_DepthBuffer, i.uv).r;
 				float4 sub=tex2D(_DepthBuffer,i.uv);
 				//float4 sub = tex2Dproj(_DepthBuffer, UNITY_PROJ_COORD(i.scrPos));
-				float vol = min(step(sub.g,1), step(subD, curD));
+				float vol = step(subD, curD);//min(step(sub.g,1), step(subD, curD));
+				
                 float col=vol* sub.r +(1.0-vol)*curD;
                 float n=1.0/_Num;
                 
 				return fixed4(col, vol*sub.g +n, 0, 1.0);
+
+				//float vol = step(subD, curD);//min(step(sub.g,1), step(subD, curD));
+
+				//float camp = 1 - min(step(vol, sub.g), step(sub.g, vol));
+
+
+				//float col = vol * sub.r + (1.0 - vol)*curD;
+				//float n = 1 / _Num;
+
+				//float flag = vol;
+				//return fixed4(col, 0, flag, 1.0);
             }
             ENDCG
         }

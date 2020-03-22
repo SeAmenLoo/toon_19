@@ -64,7 +64,9 @@
                 fixed4 oldC=tex2D(_OldFrame,i.uv);
                 fixed4 col=d*curC+(1.0-d)*(_AccumOrig*oldC +(1-_AccumOrig)*curC);
                 //return fixed4(d, d, d,1);
-				return col;
+				//return col;
+
+				return fixed4(oldD, oldD, oldD, 1);
             }
             ENDCG
         }

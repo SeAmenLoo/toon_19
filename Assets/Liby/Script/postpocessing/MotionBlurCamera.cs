@@ -17,9 +17,13 @@ public class MotionBlurCamera : MonoBehaviour
     public Shader sDepthBuffer;
     public Shader sColorBuffer;
     public Shader stest;
+    public Shader sDepth;
     Material mtest;
     Material mDepthBuffer;
     Material mColorBuffer;
+    Material mDepth;
+
+    CustomRenderTexture crt;
     RenderTexture dbuffer;
     RenderTexture sdbuffer;
     RenderTexture cbuffer;
@@ -35,7 +39,7 @@ public class MotionBlurCamera : MonoBehaviour
         if(sDepthBuffer)mDepthBuffer=new Material(sDepthBuffer);
         if(sColorBuffer)mColorBuffer=new Material(sColorBuffer);
         if (stest) mtest = new Material(stest);
-        Debug.Log(SystemInfo.supportedRenderTargetCount);
+        if (sDepth) mDepth = new Material(sDepth);
 
     }
     [ImageEffectOpaque]
@@ -52,17 +56,20 @@ public class MotionBlurCamera : MonoBehaviour
                 scbuffer = new RenderTexture(src.width, src.height, 0);
                 scbuffer.hideFlags = HideFlags.HideAndDontSave;
                 Graphics.Blit(src, scbuffer);
+                Graphics.Blit(cbuffer, dest);
                 return;
             }
 
             // Graphics.Blit(cbuffer, scbuffer);
             mtest.SetFloat("_BlurAmount", acc);
+            Graphics.Blit(scbuffer, cbuffer);
             mtest.SetTexture("_OldFrame", cbuffer);
             mtest.SetTexture("_CurFrame", src);
 
 
-            Graphics.Blit(src, cbuffer, mtest);
-            Graphics.Blit(cbuffer, dest);
+            
+            Graphics.Blit(src, scbuffer, mtest);
+            Graphics.Blit(scbuffer, dest);
 
             return;
         }
@@ -81,11 +88,12 @@ public class MotionBlurCamera : MonoBehaviour
         if(dbuffer==null){
             DestroyImmediate(dbuffer);
             dbuffer=new RenderTexture(src.width,src.height,0, RenderTextureFormat.ARGBFloat);
+ 
             dbuffer.hideFlags=HideFlags.HideAndDontSave;
-
-            mDepthBuffer.SetTexture("_DepthBuffer",dbuffer);
-            mDepthBuffer.SetFloat("_Num",frames);
-            Graphics.Blit(src,dbuffer,mDepthBuffer);
+            Graphics.Blit(src, dbuffer, mDepth);
+            //mDepthBuffer.SetTexture("_DepthBuffer",dbuffer);
+            //mDepthBuffer.SetFloat("_Num",frames);
+            //Graphics.Blit(src,dbuffer,mDepthBuffer);
 
             DestroyImmediate(sdbuffer);
             sdbuffer = new RenderTexture(src.width, src.height, 0, RenderTextureFormat.ARGBFloat);
