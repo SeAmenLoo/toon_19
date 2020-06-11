@@ -14,7 +14,7 @@
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-
+			#include "UnityCustomRenderTexture.cginc"
             #include "UnityCG.cginc"
 
 			struct appdata
@@ -29,7 +29,7 @@
 				float4 vertex : SV_POSITION;
 				float4 scrPos:TEXCOORD1;
 			};
-
+			sampler2D _CameraMotionVectorsTexture;
 			v2f vert(appdata v)
 			{
 				v2f o;
@@ -48,15 +48,9 @@
 
             fixed4 frag (v2f i) : SV_Target
             {
-				 float curD = Linear01Depth(tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(i.scrPos)).r);
-                fixed4 col = tex2D(_OldFrame, i.uv).r;
-                // just invert the colors
-				fixed4 oldcol = tex2D(_OldFrame, i.uv);
-				
-				fixed4 s = oldcol* _BlurAmount +col*(1 - _BlurAmount);
-				//oldcol.a = 0.9;
-				//oldcol.r += 0.7;
-				return fixed4(curD, curD, curD,1);
+				float depthValue = Linear01Depth(tex2Dproj(_CameraDepthTexture,i.scrPos).r);
+				float2 mo = tex2Dproj(_CameraMotionVectorsTexture, UNITY_PROJ_COORD(i.scrPos));
+				return fixed4(mo.r,mo.g, depthValue,1);
             }
             ENDCG
         }

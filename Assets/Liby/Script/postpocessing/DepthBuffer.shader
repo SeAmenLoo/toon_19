@@ -44,29 +44,34 @@
 				o.scrPos = ComputeScreenPos(o.vertex);
                 return o;
             }
-			fixed4 frag (v2f i) : SV_Target
+			float4 frag (v2f i) : SV_Target
             {
                 float curD= Linear01Depth(tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(i.scrPos)).r);
-				float subD = tex2D(_DepthBuffer, i.uv).r;
+				//float subD = tex2D(_DepthBuffer, i.uv).r;
 				float4 sub=tex2D(_DepthBuffer,i.uv);
-				//float4 sub = tex2Dproj(_DepthBuffer, UNITY_PROJ_COORD(i.scrPos));
-				float vol = step(subD, curD);//min(step(sub.g,1), step(subD, curD));
 				
-                float col=vol* sub.r +(1.0-vol)*curD;
-                float n=1.0/_Num;
-                
-				return fixed4(col, vol*sub.g +n, 0, 1.0);
+				//a方案
+				//float vol = min(step(sub.g,1), step(subD, curD));
+				//
+    //            float col=vol* sub.r +(1.0-vol)*curD;
+    //            float n=1.0/_Num;
+    //            
+				//return float4(col, vol*sub.g +n, 0, 1.0);
+				//b方案
+				float vol = 1-step(curD,sub.r);//物体远离置1
+				vol = 1 - step(curD - sub.r, 0.00001);
+				float timer = sub.b;//计时器
+				float triger = min(vol,step(timer,1));//为1时进行计时，说明当前帧开始远离
+				
+				float n = 1 / _Num;
+				timer = (timer + n) * triger;
+				float col = triger * sub.r + (1.0 - triger)*curD;
+				
 
-				//float vol = step(subD, curD);//min(step(sub.g,1), step(subD, curD));
+				return float4(col, triger, timer, 1.0);
+				//测试
 
-				//float camp = 1 - min(step(vol, sub.g), step(sub.g, vol));
-
-
-				//float col = vol * sub.r + (1.0 - vol)*curD;
-				//float n = 1 / _Num;
-
-				//float flag = vol;
-				//return fixed4(col, 0, flag, 1.0);
+				//return float4(sub.b, 1-step(curD-sub.b,0.00001), curD, 1.0);
             }
             ENDCG
         }

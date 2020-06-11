@@ -7,7 +7,7 @@
 		_ILMTex("ILM (RGB)", 2D) = "white" {}
 
 		_Shininess ("Shininess", Range (0.001, 2)) = 0.078125
-		_SpecStep ("_SpecStep",Range(0.1,0.3)) = 0.5
+		_SpecStep ("_SpecStep",Range(0,0.3)) = 0.5
 		_OutlineColor("Outline Color", Color) = (0,0,0,1)
 		_Outline("Outline Width", Range(.0,0.01)) = 0.01
 		_ShadowContrast("Shadow Contrast", Range(-2,1)) = 1
@@ -45,7 +45,7 @@
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-			
+
 			#include "UnityCG.cginc"
 			
 			struct appdata
@@ -58,6 +58,7 @@
 			struct v2f
 			{
 				float4 pos : SV_POSITION;
+				
 			};
 
 			fixed _Outline;
@@ -173,7 +174,7 @@
 			 	finCol *= 1 + UNITY_LIGHTMODEL_AMBIENT;
 				
 				finCol.a = mainTex.a;
-				
+			
 				return finCol;
 			}
 			ENDCG

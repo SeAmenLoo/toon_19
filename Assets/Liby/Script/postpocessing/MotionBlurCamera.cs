@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.Experimental.Rendering;
 //[ExecuteInEditMode]
 [RequireComponent(typeof(Camera))]
 public class MotionBlurCamera : MonoBehaviour
@@ -23,7 +23,7 @@ public class MotionBlurCamera : MonoBehaviour
     Material mColorBuffer;
     Material mDepth;
 
-    CustomRenderTexture crt;
+    CustomRenderTexture cbuf;//目前CustomRenderTexture的双缓冲图片无法获取深度信息暂不用
     RenderTexture dbuffer;
     RenderTexture sdbuffer;
     RenderTexture cbuffer;
@@ -35,41 +35,54 @@ public class MotionBlurCamera : MonoBehaviour
         
         cm=GetComponent<Camera>();
         cm.depthTextureMode |= DepthTextureMode.Depth;
-
-        if(sDepthBuffer)mDepthBuffer=new Material(sDepthBuffer);
+        //cm.depthTextureMode |= DepthTextureMode.MotionVectors;
+        if (sDepthBuffer)mDepthBuffer=new Material(sDepthBuffer);
         if(sColorBuffer)mColorBuffer=new Material(sColorBuffer);
         if (stest) mtest = new Material(stest);
         if (sDepth) mDepth = new Material(sDepth);
 
+        Debug.Log(SystemInfo.supportsMotionVectors);
+    }
+    void OnDisable()
+    {
+        DestroyImmediate(cbuffer);
+        DestroyImmediate(dbuffer);
+        DestroyImmediate(scbuffer);
+        DestroyImmediate(sdbuffer);
     }
     [ImageEffectOpaque]
     void OnRenderImage(RenderTexture src, RenderTexture dest) {
+
         if (cameraSet==CameraSet.test) {
-            if (cbuffer == null)
+            //Graphics.Blit(src, dest, mtest);
+            //return;
+            if (cbuf == null)
             {
-                DestroyImmediate(cbuffer);
-                cbuffer = new RenderTexture(src.width, src.height, 0);
-                cbuffer.hideFlags = HideFlags.HideAndDontSave;
-                Graphics.Blit(src, cbuffer);
+
+                DestroyImmediate(cbuf);
+
+
+                cbuf = new CustomRenderTexture(src.width, src.height,RenderTextureFormat.Depth);
+                cbuf.doubleBuffered = true;
+                cbuf.hideFlags = HideFlags.HideAndDontSave;
+                Graphics.Blit(src, cbuf);
                 Debug.Log("first frame");
-                DestroyImmediate(scbuffer);
-                scbuffer = new RenderTexture(src.width, src.height, 0);
-                scbuffer.hideFlags = HideFlags.HideAndDontSave;
-                Graphics.Blit(src, scbuffer);
-                Graphics.Blit(cbuffer, dest);
+              
+              
+                Graphics.Blit(cbuf, dest);
                 return;
             }
 
             // Graphics.Blit(cbuffer, scbuffer);
             mtest.SetFloat("_BlurAmount", acc);
-            Graphics.Blit(scbuffer, cbuffer);
-            mtest.SetTexture("_OldFrame", cbuffer);
+          
+            mtest.SetTexture("_OldFrame", cbuf);
             mtest.SetTexture("_CurFrame", src);
 
 
             
-            Graphics.Blit(src, scbuffer, mtest);
-            Graphics.Blit(scbuffer, dest);
+            Graphics.Blit(src, cbuf, mtest);
+            Graphics.Blit(cbuf, dest);
 
             return;
         }
@@ -87,7 +100,9 @@ public class MotionBlurCamera : MonoBehaviour
         }
         if(dbuffer==null){
             DestroyImmediate(dbuffer);
-            dbuffer=new RenderTexture(src.width,src.height,0, RenderTextureFormat.ARGBFloat);
+            //GraphicsFormat.R32G32B32A32_SFloat
+            //GraphicsFormat.
+            dbuffer =new RenderTexture(src.width,src.height,0,RenderTextureFormat.ARGBFloat);
  
             dbuffer.hideFlags=HideFlags.HideAndDontSave;
             Graphics.Blit(src, dbuffer, mDepth);

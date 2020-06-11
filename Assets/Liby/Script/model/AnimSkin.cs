@@ -1,14 +1,14 @@
 ﻿ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public class AnimSkin : MonoBehaviour
-{
-    public enum ModelSet
+ public enum ModelSet
     {
         Mesh,
         Skin,
     }
+public class AnimSkin : MonoBehaviour
+{
+   
     public ModelSet modelSet;
     int blendShapeCount;
     MeshFilter meshFilter;
@@ -22,9 +22,14 @@ public class AnimSkin : MonoBehaviour
 
     public GameObject objSkin;
     MeshFilter skinMesh;
-
-    void Awake()
+    bool startMesh = false; 
+    void Start()
     {
+        StartMesh();
+    }
+    public void StartMesh()
+    {
+        startMesh = true;
         //非骨骼模型
         if (modelSet==ModelSet.Mesh){
             meshRenderer = GetComponent<MeshRenderer>();
@@ -47,16 +52,19 @@ public class AnimSkin : MonoBehaviour
             skinMesh = objSkin.GetComponent<MeshFilter>();
             meshRenderer = objSkin.GetComponent<MeshRenderer>();
             meshRenderer.materials = skinnedMeshRenderer.materials;
+            meshRenderer.material.SetFloat("_Outline",0.01f);
             //定义顶点数组
             mesh = skinnedMeshRenderer.sharedMesh;
             originalVertices = mesh.vertices;
-            displacedVertices = new Vector3[originalVertices.Length];
-            lastVertices = new Vector3[originalVertices.Length];
+            //displacedVertices = new Vector3[originalVertices.Length];
+            lastVertices = originalVertices;//new Vector3[originalVertices.Length];
+            
             colors = mesh.colors;
+            mesh = new Mesh();
         }
         
         //顶点gpu
-        modelTexture = new RenderTexture(256, 256, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+        //modelTexture = new RenderTexture(256, 256, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
        
 
     }
@@ -68,19 +76,15 @@ public class AnimSkin : MonoBehaviour
     Vector3[] normals;
     Color[] colors;
 
-    void Start()
-    {
-        
 
-    }
     private void Update() {
-        
+        if (!startMesh) return;
         SetMesh();
     }
     void SetMesh()
     {
-        Debug.Log(colors.Length  );
-        Debug.Log(originalVertices.Length);
+        //Debug.Log(colors.Length  );
+        //Debug.Log(originalVertices.Length);
   
         if (modelSet==ModelSet.Mesh){
             //Graphics.Blit();
@@ -93,7 +97,7 @@ public class AnimSkin : MonoBehaviour
             mesh.RecalculateNormals();
         }
         else if(modelSet==ModelSet.Skin){
-            mesh = new Mesh();
+            
             skinnedMeshRenderer.BakeMesh(mesh);
             skinMesh.mesh = mesh;
             originalVertices = mesh.vertices;
@@ -103,8 +107,9 @@ public class AnimSkin : MonoBehaviour
             {
                 UpdateSkin(i);
             }
-           
-            mesh.vertices = displacedVertices;
+         
+         
+            mesh.vertices = lastVertices;
             mesh.RecalculateNormals();
 
 
@@ -149,13 +154,16 @@ public class AnimSkin : MonoBehaviour
     {
         if(Vector3.Dot(lastVertices[i] - originalVertices[i], normals[i]) > 0)
         {
-            displacedVertices[i] = (originalVertices[i] + lastVertices[i]) * 0.5f;
+            //lastVertices[i] = (originalVertices[i] + lastVertices[i]) * 0.5f;
+            float range=0.5f;
+            float value = Vector3.Dot(Vector3.Normalize(lastVertices[i] - originalVertices[i]), Vector3.Normalize(normals[i]));
+            lastVertices[i] = originalVertices[i] + (lastVertices[i]-originalVertices[i]) * value* range;
         }
         else
         {
-            displacedVertices[i] = originalVertices[i];
+            lastVertices[i] = originalVertices[i];
         }
-        lastVertices[i] = displacedVertices[i];
+        //lastVertices[i] = displacedVertices[i];
       
     }
 }

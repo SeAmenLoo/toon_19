@@ -21,17 +21,18 @@ Properties
  		#include "UnityCG.cginc"
             
 		struct Input {
-			float4 vertColor;
+			float3 vertColor;
+			//float3 normal;
 		};
 
 		void vert(inout appdata_full v, out Input o){
-			o.vertColor = v.color;
+			o.vertColor = v.normal;
 		}
 
 		half3 surf (Input IN, inout SurfaceOutput o) {
 			o.Albedo = half3(IN.vertColor.r,IN.vertColor.g,IN.vertColor.b);
 			//o.Albedo = IN.vertColor.rgb;
-            o.Alpha=IN.vertColor.a;
+           // o.Alpha=IN.vertColor.a;
 			half3 col = o.Albedo;
 			return col;
 		}
@@ -76,11 +77,11 @@ Properties
 			{
 				v2f o;
 				
-				float4 vPos = float4(UnityObjectToViewPos(v.vertex),1.0f);
+				float4 vPos = float4(UnityObjectToViewPos(v.vertex), 1.0f);
 				float cameraDis = length(vPos.xyz);
 				vPos.xyz += normalize(normalize(vPos.xyz)) * v.color.b;
-				float3 vNormal = mul((float3x3)UNITY_MATRIX_IT_MV,v.normal);
-				o.pos = mul(UNITY_MATRIX_P,vPos);
+				float3 vNormal = mul((float3x3)UNITY_MATRIX_IT_MV, v.normal);
+				o.pos = mul(UNITY_MATRIX_P, vPos);
 				float2 offset = TransformViewToProjection(vNormal).xy;
 				offset += offset * cameraDis  * v.color.g;
 				o.pos.xy += offset * _Outline* v.color.a;

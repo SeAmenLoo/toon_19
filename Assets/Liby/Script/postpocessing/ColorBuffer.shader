@@ -46,27 +46,28 @@
             sampler2D _CurFrame;
 			sampler2D _OldFrame;
             sampler2D _CameraDepthTexture;
+			sampler2D _LastCameraDepthTexture;
             sampler2D _DepthBuffer;
             float _AccumOrig;
 
 
-			fixed4 frag (v2f i) : SV_Target
+			float4 frag (v2f i) : SV_Target
             {
 				float4 old = tex2D(_DepthBuffer,i.uv);
-                fixed oldD=tex2D(_DepthBuffer,i.uv).r;
-				fixed t = tex2D(_DepthBuffer, i.uv).b;
+                float oldD=tex2D(_DepthBuffer,i.uv).r;
+				
 				//float oldD = Linear01Depth(tex2Dproj(_DepthBuffer, UNITY_PROJ_COORD(i.scrPos)).r);
                 //fixed curD=tex2D(_CameraDepthTexture,i.uv).r;
-				fixed curD = Linear01Depth(tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(i.scrPos)).r);
+				float curD = Linear01Depth(tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(i.scrPos)).r);
 
-                fixed d=step(curD, oldD );
+				float d = old.g;//1 - step(curD - oldD, 0.00001);//step(0.1,curD- oldD);
                 fixed4 curC=tex2D(_CurFrame,i.uv);
                 fixed4 oldC=tex2D(_OldFrame,i.uv);
-                fixed4 col=d*curC+(1.0-d)*(_AccumOrig*oldC +(1-_AccumOrig)*curC);
+                fixed4 col= (1 - d)*curC+d*(_AccumOrig*oldC +(1-_AccumOrig)*curC);
                 //return fixed4(d, d, d,1);
-				//return col;
+				return col;
 
-				return fixed4(oldD, oldD, oldD, 1);
+				//return fixed4(old.r, old.r, old.r, 1);
             }
             ENDCG
         }
